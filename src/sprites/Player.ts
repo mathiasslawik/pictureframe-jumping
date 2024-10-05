@@ -16,6 +16,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   body!: Phaser.Physics.Arcade.Body;
   private cursors: Cursors;
 
+  private hasDoubleJumped: boolean = false;
+
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -33,6 +35,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // Enable sprite physics
     this.enablePhysics();
+
+    this.cursors.up.on('down', () => {
+      // Only allow the player to jump if they are on the ground
+      if (this.body.blocked.down) {
+        this.setVelocityY(-500);
+      } else if (this.hasDoubleJumped === false) {
+        this.setVelocityY(-500);
+        this.hasDoubleJumped = true;
+      }
+    });
   }
 
   private enablePhysics() {
@@ -91,6 +103,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   update() {
     const acceleration = this.body.blocked.down ? 600 : 200;
 
+    // Allow double jumping when blocked down
+    if (this.body.blocked.down) {
+      this.hasDoubleJumped = false;
+    }
+
     // Apply horizontal acceleration when left or right are applied
     switch (true) {
       case this.cursors.left.isDown:
@@ -109,14 +126,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
       default:
         this.setAccelerationX(0);
-    }
-
-    // Only allow the player to jump if they are on the ground
-    if (
-      this.body.blocked.down &&
-      (this.cursors.up.isDown || this.cursors.w.isDown)
-    ) {
-      this.setVelocityY(-500);
     }
 
     // Update the animation/texture based on the state of the player
