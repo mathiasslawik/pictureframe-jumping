@@ -1,4 +1,4 @@
-export const TILESET_NAME = '0x72-industrial-tileset-32px-extruded';
+export const TILESET_NAME = 'world_tileset';
 
 export enum TilemapLayer {
   Background = 'Background',

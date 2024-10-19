@@ -1,7 +1,5 @@
 import Phaser from 'phaser';
-import { render } from 'phaser-jsx';
 
-import { HelpText } from '../components';
 import {
   key,
   Tile,
@@ -9,14 +7,14 @@ import {
   TilemapObject,
   TILESET_NAME,
 } from '../constants';
-import { TileMarker } from '../graphics';
 import { Player } from '../sprites';
 
 export class Main extends Phaser.Scene {
-  private groundLayer!: Phaser.Tilemaps.TilemapLayer;
+  public groundLayer!: Phaser.Tilemaps.TilemapLayer;
+
+  private foregroundLayer!: Phaser.Tilemaps.TilemapLayer;
   private player!: Player;
   private spikeGroup!: Phaser.Physics.Arcade.StaticGroup;
-  private tileMarker!: Phaser.GameObjects.Graphics;
   private isPlayerDead = false;
 
   constructor() {
@@ -26,12 +24,14 @@ export class Main extends Phaser.Scene {
   create() {
     this.isPlayerDead = false;
 
-    const map = this.make.tilemap({ key: key.tilemap.platformer });
+    const map = this.make.tilemap({ key: key.tilemap.level1 });
     const tileset = map.addTilesetImage(TILESET_NAME, key.image.tiles)!;
 
     map.createLayer(TilemapLayer.Background, tileset);
     this.groundLayer = map.createLayer(TilemapLayer.Ground, tileset)!;
-    map.createLayer(TilemapLayer.Foreground, tileset);
+
+    this.foregroundLayer = map.createLayer(TilemapLayer.Foreground, tileset)!;
+    this.foregroundLayer.setDepth(10);
 
     // Instantiate a player instance at the location of the "Spawn Point" object in the Tiled map
     const spawnPoint = map.findObject(
@@ -75,9 +75,7 @@ export class Main extends Phaser.Scene {
     this.cameras.main.startFollow(this.player);
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-    this.tileMarker = new TileMarker(this, map, this.groundLayer);
-
-    render(<HelpText />, this);
+    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
   }
 
   update() {
@@ -86,7 +84,6 @@ export class Main extends Phaser.Scene {
     }
 
     this.player.update();
-    this.tileMarker.update();
 
     if (
       this.player.y > this.groundLayer.height ||

@@ -9,21 +9,20 @@ export class Boot extends Scene {
   }
 
   preload() {
-    this.load.spritesheet(key.spritesheet.player, assets.spritesheets.player, {
+    this.load.spritesheet(key.spritesheet.knight, assets.spritesheets.knight, {
       frameWidth: 32,
       frameHeight: 32,
-      margin: 1,
-      spacing: 2,
+      margin: 0,
+      spacing: 0,
     });
 
     this.load.image(key.image.spike, assets.images.spike);
 
-    this.load.image(key.image.tiles, assets.tilemaps.industrial);
+    this.load.image(key.image.ei, assets.images.ei);
 
-    this.load.tilemapTiledJSON(
-      key.tilemap.platformer,
-      assets.tilemaps.platformer,
-    );
+    this.load.image(key.image.tiles, assets.tilemaps.tilesetWorld);
+
+    this.load.tilemapTiledJSON(key.tilemap.level1, assets.tilemaps.level1);
   }
 
   create() {

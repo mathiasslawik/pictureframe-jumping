@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 
 import { key } from '../constants';
+import { Projectile } from './Projectile';
 
 enum Animation {
   Idle = 'PlayerIdle',
@@ -8,7 +9,7 @@ enum Animation {
 }
 
 type Cursors = Record<
-  'w' | 'a' | 's' | 'd' | 'up' | 'left' | 'down' | 'right',
+  'w' | 'a' | 's' | 'd' | 'up' | 'left' | 'down' | 'right' | 'space',
   Phaser.Input.Keyboard.Key
 >;
 
@@ -22,7 +23,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene: Phaser.Scene,
     x: number,
     y: number,
-    texture = key.spritesheet.player,
+    texture = key.spritesheet.knight,
     frame = 0,
   ) {
     super(scene, x, y, texture, frame);
@@ -45,6 +46,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.hasDoubleJumped = true;
       }
     });
+
+    this.cursors.space.on('down', () => {
+      new Projectile(
+        this.scene,
+        this.body.x,
+        this.body.y,
+        0,
+        this.flipX,
+        this.body.velocity,
+      );
+    });
   }
 
   private enablePhysics() {
@@ -52,10 +64,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.physics.world.enable(this);
 
     // Create the physics-based sprite that we will move around and animate
-    this.setDrag(1000, 0)
-      .setMaxVelocity(300, 400)
-      .setSize(18, 24)
-      .setOffset(7, 9);
+    this.setDrag(1500, 0)
+      .setMaxVelocity(200, 300)
+      .setSize(13, 16)
+      .setOffset(10, 12)
+      .setCollideWorldBounds(true);
 
     // Add the sprite to the scene
     this.scene.add.existing(this);
@@ -63,7 +76,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private createCursorKeys() {
     return this.scene.input.keyboard!.addKeys(
-      'w,a,s,d,up,left,down,right',
+      'w,a,s,d,up,left,down,right,space',
     ) as Cursors;
   }
 
@@ -74,11 +87,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (!anims.exists(Animation.Idle)) {
       anims.create({
         key: Animation.Idle,
-        frames: anims.generateFrameNumbers(key.spritesheet.player, {
+        frames: anims.generateFrameNumbers(key.spritesheet.knight, {
           start: 0,
           end: 3,
         }),
-        frameRate: 3,
+        frameRate: 4,
         repeat: -1,
       });
     }
@@ -86,9 +99,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (!anims.exists(Animation.Run)) {
       anims.create({
         key: Animation.Run,
-        frames: anims.generateFrameNumbers(key.spritesheet.player, {
-          start: 8,
-          end: 15,
+        frames: anims.generateFrameNumbers(key.spritesheet.knight, {
+          start: 16,
+          end: 31,
         }),
         frameRate: 12,
         repeat: -1,
@@ -101,7 +114,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   update() {
-    const acceleration = this.body.blocked.down ? 600 : 200;
+    const runningAcceleration = this.body.blocked.down ? 500 : 300;
 
     // Allow double jumping when blocked down
     if (this.body.blocked.down) {
@@ -112,16 +125,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     switch (true) {
       case this.cursors.left.isDown:
       case this.cursors.a.isDown:
+        if (this.flipX === false) {
+          this.setVelocityX(this.body.velocity.x / 2.5);
+        }
+
         // No need to have a separate set of graphics for running to the left & to the right
         // Instead we can just mirror the sprite
         this.setFlipX(true);
-        this.setAccelerationX(-acceleration);
+        this.setAccelerationX(-runningAcceleration);
+
         break;
 
       case this.cursors.right.isDown:
       case this.cursors.d.isDown:
+        if (this.flipX === true) {
+          this.setVelocityX(this.body.velocity.x / 2.5);
+        }
+
         this.setFlipX(false);
-        this.setAccelerationX(acceleration);
+        this.setAccelerationX(runningAcceleration);
         break;
 
       default:
@@ -136,7 +158,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       );
     } else {
       this.anims.stop();
-      this.setTexture(key.spritesheet.player, 10);
+      this.setTexture(key.spritesheet.knight, 0);
     }
   }
 }

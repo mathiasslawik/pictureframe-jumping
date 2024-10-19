@@ -20,7 +20,12 @@ const compat = new FlatCompat({
 });
 
 export default [
-  includeIgnoreFile(gitignorePath),
+  {
+    ignores: [
+      ...includeIgnoreFile(gitignorePath).ignores,
+      'src/assets/tilemaps/world_tileset.tsx',
+    ],
+  },
 
   ...compat.extends(
     'eslint:recommended',
